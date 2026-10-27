@@ -1,9 +1,9 @@
 # Good words.<br>A clearer view.
 
-Your notes, documentation, and next big idea — with a little more room to breathe. Welcome to **ClearMark**, a quiet home for your Markdown.
+Your notes, documentation, and next big idea — one press of the space bar away. **ClearMark** brings Markdown to Finder Quick Look.
 
 > [!TIP]
-> Open a document with **⌘O**, or drop one anywhere in this window. Keep writing in your favorite editor; the preview follows along.
+> Select a Markdown file in **Finder** and press **Space**. Install once; the settings app never needs to stay open.
 
 ## The details make the difference
 
@@ -12,7 +12,7 @@ Good tools get out of your way. ClearMark gives your words considered typography
 | A small thing | A better reading experience |
 | :--- | :--- |
 | **An outline that follows the structure** | Jump straight to the part you need. |
-| **A view for every moment** | Read the result, inspect the source, or see both. |
+| **Only what you need** | Extra rendering libraries load only when a document uses them. |
 | **Everything stays on your Mac** | No accounts, tracking, or network requests. |
 
 ## Code, in good company
@@ -52,22 +52,20 @@ $$
 
 ## Make yourself at home
 
-- [x] A native macOS app, built with SwiftUI
+- [x] A small native settings app, with English and Chinese
 - [x] Finder Quick Look for a glance with the space bar
 - [x] GitHub-style tables, task lists, and callouts
 - [x] Diagrams, math, and code — available offline
-- [x] PDF and standalone HTML when it’s time to share
+- [x] No background app, account, or subscription
 
 <details>
-<summary>A few shortcuts worth knowing</summary>
+<summary>One-time setup</summary>
 
-| Action | Shortcut |
-| :--- | :--- |
-| Open a document | ⌘O |
-| Find a word or phrase | ⌘F |
-| Read / Split / Source | ⌘1 / ⌘2 / ⌘3 |
-| Larger / smaller text | ⌘+ / ⌘− |
-| Export a PDF | ⇧⌘E |
+1. Install ClearMark in Applications.
+2. If needed, enable ClearMark Preview in System Settings → Extensions → Quick Look.
+3. Select a Markdown file in Finder, then press Space.
+
+Open ClearMark only when you want to change the language, theme, text size, or rendering options. Quit it when you’re done.
 
 </details>
 

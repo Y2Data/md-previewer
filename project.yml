@@ -4,11 +4,13 @@ options:
   deploymentTarget:
     macOS: '14.0'
   createIntermediateGroups: true
+  developmentLanguage: en
+  knownRegions: [en, zh-Hans]
 settings:
   base:
     SWIFT_VERSION: '5.0'
-    MARKETING_VERSION: '0.1.0'
-    CURRENT_PROJECT_VERSION: '1'
+    MARKETING_VERSION: '0.2.0'
+    CURRENT_PROJECT_VERSION: '2'
     CODE_SIGN_STYLE: Automatic
     ENABLE_HARDENED_RUNTIME: YES
     GENERATE_INFOPLIST_FILE: NO
@@ -18,10 +20,8 @@ targets:
     platform: macOS
     sources:
       - ClearMark/App
-      - ClearMark/Shared
-      - path: ClearMark/Resources
-        type: folder
-        buildPhase: resources
+      - ClearMark/Preferences
+      - ClearMark/Localization
       - path: ClearMark/Assets.xcassets
     info:
       path: ClearMark/Info.plist
@@ -29,13 +29,9 @@ targets:
         CFBundleDisplayName: ClearMark
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleLocalizations: [en, zh-Hans]
         LSApplicationCategoryType: public.app-category.productivity
         NSHumanReadableCopyright: Copyright © 2026 ClearMark contributors. MIT licensed.
-        CFBundleDocumentTypes:
-          - CFBundleTypeName: Markdown document
-            CFBundleTypeRole: Viewer
-            LSHandlerRank: Alternate
-            LSItemContentTypes: [net.daringfireball.markdown, public.plain-text]
         UTImportedTypeDeclarations:
           - UTTypeIdentifier: net.daringfireball.markdown
             UTTypeDescription: Markdown document
@@ -47,10 +43,7 @@ targets:
       path: ClearMark/ClearMark.entitlements
       properties:
         com.apple.security.app-sandbox: true
-        # Required for WebKit's helper processes to launch, including local content.
-        com.apple.security.network.client: true
-        com.apple.security.files.user-selected.read-write: true
-        com.apple.security.print: true
+        com.apple.security.application-groups: [DTTKLCXH53.dev.y2data.clearmark]
     dependencies:
       - target: ClearMarkQuickLook
         embed: true
@@ -64,6 +57,8 @@ targets:
     sources:
       - QuickLook
       - ClearMark/Shared
+      - ClearMark/Preferences
+      - ClearMark/Localization
       - path: ClearMark/Resources
         type: folder
         buildPhase: resources
@@ -73,6 +68,7 @@ targets:
         CFBundleDisplayName: ClearMark Preview
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleLocalizations: [en, zh-Hans]
         NSExtension:
           NSExtensionPointIdentifier: com.apple.quicklook.preview
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).PreviewViewController
@@ -85,6 +81,7 @@ targets:
         com.apple.security.app-sandbox: true
         com.apple.security.network.client: true
         com.apple.security.files.user-selected.read-only: true
+        com.apple.security.application-groups: [DTTKLCXH53.dev.y2data.clearmark]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.y2data.clearmark.quicklook
@@ -92,9 +89,17 @@ targets:
   ClearMarkTests:
     type: bundle.unit-test
     platform: macOS
-    sources: [Tests/Swift]
-    dependencies:
-      - target: ClearMark
+    sources:
+      - Tests/Swift
+      - ClearMark/App/ConfigurationView.swift
+      - ClearMark/App/SettingsModel.swift
+      - Tests/Resources
+      - ClearMark/Shared
+      - ClearMark/Preferences
+      - ClearMark/Localization
+      - path: ClearMark/Resources
+        type: folder
+        buildPhase: resources
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

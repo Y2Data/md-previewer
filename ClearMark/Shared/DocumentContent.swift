@@ -6,10 +6,10 @@ enum DocumentError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .tooLarge: return "This document is larger than 8 MB. Open a smaller file to keep previews responsive."
-        case .unsupportedEncoding: return "This file isn’t readable text. Save it as UTF-8 or UTF-16 and try again."
-        case .notMarkdown: return "Choose a Markdown or plain text document."
-        case .unsafeResource: return "This resource is outside the document’s folder or cannot be previewed."
+        case .tooLarge: return L10n.text("This document is larger than 8 MB. Open a smaller file to keep previews responsive.")
+        case .unsupportedEncoding: return L10n.text("This file isn’t readable text. Save it as UTF-8 or UTF-16 and try again.")
+        case .notMarkdown: return L10n.text("Choose a Markdown or plain text document.")
+        case .unsafeResource: return L10n.text("This resource is outside the document’s folder or cannot be previewed.")
         }
     }
 }
@@ -45,7 +45,7 @@ struct DocumentContent {
 }
 
 enum PreviewResources {
-    static var root: URL { Bundle.main.resourceURL!.appendingPathComponent("Resources", isDirectory: true) }
+    static var root: URL { Bundle(for: PreviewBundle.self).resourceURL!.appendingPathComponent("Resources", isDirectory: true) }
 
     static func resolve(_ path: String, inside root: URL) throws -> URL {
         let canonicalRoot = root.resolvingSymlinksInPath().standardizedFileURL
@@ -54,3 +54,5 @@ enum PreviewResources {
         return candidate
     }
 }
+
+private final class PreviewBundle: NSObject {}

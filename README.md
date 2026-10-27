@@ -1,96 +1,64 @@
-<p align="center"><img src="ClearMark/Assets.xcassets/AppIcon.appiconset/icon-128@2x.png" width="100" alt="ClearMark icon"></p>
+<p align="center"><img src="ClearMark/Assets.xcassets/AppIcon.appiconset/icon-128@2x.png" width="90" alt="ClearMark icon"></p>
 <h1 align="center">ClearMark</h1>
-<p align="center">Good words. A clearer view.<br>A free, offline Markdown reader and Finder Quick Look extension for macOS.</p>
-<p align="center"><a href="LICENSE">MIT licensed</a> · macOS 14+ · SwiftUI + WebKit · No account required</p>
+<p align="center">Install once. Press Space.<br>A lightweight, free Markdown Quick Look extension for macOS.</p>
+<p align="center"><a href="README.zh-CN.md">简体中文</a> · <a href="https://github.com/Y2Data/md-previewer/releases">Download PKG</a> · <a href="LICENSE">MIT license</a></p>
 
-ClearMark gives Markdown a comfortable place to be read. Open a file, keep writing in your preferred editor, and watch the preview update. Use the outline to get around, switch to source or split view, and export when you’re ready to share.
+Select a Markdown file in Finder and press **Space**. ClearMark renders it right in Quick Look. Open the app only to change settings, then quit it. There is no background app, login item, account, subscription, or expiration.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/reader-dark.png">
-  <img src="docs/reader-light.png" alt="ClearMark’s reading surface, showing typography, a callout, and a GitHub-style table" width="100%">
-</picture>
+## Install
 
-## What’s here
+Requires **macOS 14+**, on Apple silicon or Intel.
 
-- Native macOS window with outline navigation, recent documents, drag and drop, and keyboard shortcuts.
-- Finder Quick Look extension using the same renderer as the app.
-- Live reload, including files replaced by an editor’s atomic save.
-- Read, split, and selectable source views; document search; word count and reading time.
-- System, light, dark, and paper themes; adjustable text size and page width.
-- GitHub-style tables, task lists, strikethrough, and callouts.
-- Syntax highlighting with a copy button, KaTeX math, and Mermaid diagrams.
-- PDF export, native printing, and script-free standalone HTML with native MathML.
-- Bundled rendering libraries. No accounts, telemetry, subscription, or runtime downloads.
+1. Download the `.pkg` and its SHA-256 checksum from [GitHub Releases](https://github.com/Y2Data/md-previewer/releases).
+2. Install it. The app and its bundled Quick Look extension go into `/Applications/ClearMark.app`.
+3. If macOS requires it, open ClearMark → **Quick Look Setup**, then enable **ClearMark Preview** under Extensions → Quick Look. On recent macOS versions, this is in General → Login Items & Extensions.
+4. Select a `.md` file in Finder and press **Space**. ClearMark does not need to remain open.
 
-## Build and run
+**The first PKG is an unsigned, unnotarized beta installer.** The release notes describe the included app’s signature separately. macOS may require explicit approval before installing a downloaded beta. The [formal signing and notarization procedure](docs/SIGNING.md) is prepared for a future release.
 
-Requires **macOS 14 or later** and **Xcode 16 or later**. The generated Xcode project is checked in; XcodeGen and Node are not needed to build the app.
+If another Markdown Quick Look extension is installed, macOS may choose it until you disable it. Finder registration and extension approval are managed by macOS.
 
-```sh
-git clone https://github.com/Y2Data/md-previewer.git
-cd md-previewer
-xcodebuild -project ClearMark.xcodeproj -scheme ClearMark \
-  -configuration Release -destination 'platform=macOS' \
-  -derivedDataPath build CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual build
-open build/Build/Products/Release/ClearMark.app
-```
+## Configure once
 
-Or open `ClearMark.xcodeproj`, select the **ClearMark** scheme, and run. Choose your signing team in both targets if you want to use your own development certificate. The command above uses a local ad-hoc signature and requires no paid developer account.
+<img src="docs/settings-en.png" alt="ClearMark’s native settings window" width="580">
 
-This is an early source release. There is no Developer ID signed, notarized download yet. Build locally to try it. A distributable release needs both the app and its extension signed by the same team, followed by notarization.
+- English and Simplified Chinese, with automatic system-language selection.
+- System, light, dark, and paper appearance; text size and page width.
+- A collapsible document outline inside Quick Look.
+- Optional syntax highlighting, KaTeX math, and Mermaid diagrams.
+- GitHub-style tables, task lists, callouts, and one-click code copying.
 
-## Finder Quick Look
+Settings are stored locally in a shared app-group container and read when the next preview opens. Closing the settings window exits the app.
 
-1. Build the app and copy `ClearMark.app` to your Applications folder.
-2. Launch ClearMark once.
-3. Enable **ClearMark Preview** in System Settings → General → Login Items & Extensions → Quick Look. On older macOS versions, look under Privacy & Security → Extensions.
-4. Select a `.md` file in Finder and press **Space**.
+## Small by design
 
-If another Markdown preview extension is installed, macOS may keep using it until you disable it. Extension activation depends on macOS registration and signing; a successful compile alone does not verify Finder activation.
+The host app contains only the native SwiftUI settings interface. The renderer and its assets are bundled **once**, inside the Quick Look extension. WebKit is supplied by macOS; no browser engine is shipped with the app.
 
-## Shortcuts
+Ordinary Markdown loads only the Markdown parser, sanitizer, and page styles. Code highlighting, math, fonts, and diagrams load only when the document needs them and the corresponding option is enabled. No runtime downloads are required. macOS controls the extension process’s lifetime and may cache it between previews.
 
-| Action | Shortcut |
-| --- | --- |
-| Open document | ⌘O |
-| Find / next / previous | ⌘F / ⌘G / ⇧⌘G |
-| Read / Split / Source | ⌘1 / ⌘2 / ⌘3 |
-| Increase / decrease / reset text size | ⌘+ / ⌘− / ⌘0 |
-| Export PDF | ⇧⌘E |
-| Copy Markdown | ⇧⌘C |
-| Print | ⌘P |
+## Local and bounded
 
-## Local files and privacy
+Document HTML is sanitized. A Content Security Policy, URL filtering, and navigation policy block scripts from documents and remote resources. External links open in your browser only when clicked. The extension uses a nonpersistent WebKit data store.
 
-Markdown is treated as untrusted input: DOMPurify sanitizes the HTML, a Content Security Policy blocks network access and document scripts, and WebKit uses a nonpersistent data store. The app and extension are sandboxed. External links open in your default browser only when you click them.
+Local images must be inside the document’s folder or its subfolders and accessible to the Quick Look sandbox. Parent traversal and symlink escapes are rejected. Remote images receive a placeholder.
 
-The targets include the outgoing-network entitlement because macOS requires it to launch WebKit’s helper processes, even for local content. The renderer’s CSP, URL rewriting, and navigation delegate enforce the offline policy; the browser tests check that document content makes no external requests.
+Limits: 8 MB per document; 12 MB per local image; a 32 MB / 100-image input budget; raster thumbnails up to 2,048 pixels per edge and 24 megapixels total; 1 MB per local SVG; 12 diagrams of 12,000 characters each. Animations display their first frame. Broken diagrams keep their source visible.
 
-Remote images are deliberately replaced with a placeholder. Local images are limited to the document’s own folder and its subfolders; parent traversal and symlink escapes are rejected. If the macOS sandbox blocks an image, choose **File → Allow Images from Folder…** and select the document’s containing folder. Quick Look has no folder picker and can only show images accessible to its sandbox.
+UTF-8 and BOM-marked UTF-16 are supported. MDX is treated as Markdown without executing JSX. Front matter is hidden rather than interpreted. The settings app has no network entitlement; the extension has the entitlement macOS needs to start WebKit’s helper processes, while the renderer enforces offline operation.
 
-Documents are limited to 8 MB, local images to 12 MB each and a 32 MB / 100-image budget, and diagrams to 12 blocks of 12,000 characters. Raster images are thumbnailed to a maximum edge of 2,048 pixels with a total 24-megapixel budget; animations display their first frame. Local SVG files are limited to 1 MB. Oversized or malformed diagrams show their source. UTF-8 and BOM-marked UTF-16 are supported. Recent file bookmarks and reading preferences stay in local app preferences.
+## Build and test
 
-ClearMark is a reader, not an editor. `.mdx` files are shown as Markdown without executing JSX. YAML front matter is hidden rather than interpreted. Arbitrary HTML styling, interactive embeds, executable code, and remote resources are not supported.
-
-PDF export preserves the current reading appearance as one continuous page. Use **File → Print** for the system’s paginated print workflow. HTML export embeds loaded local images; unavailable or not-yet-loaded images receive a placeholder.
-
-## Development
-
-`project.yml` is the source for the Xcode project. After changing targets or file lists, regenerate it with [XcodeGen](https://github.com/yonaskolb/XcodeGen):
-
-```sh
-xcodegen generate
-```
-
-Run the native document/security tests and the real WebKit rendering test:
+Xcode 16+ is required. The generated project is checked in. XcodeGen and Node are not needed to build the app.
 
 ```sh
 xcodebuild -project ClearMark.xcodeproj -scheme ClearMark \
-  -destination 'platform=macOS' -derivedDataPath build \
+  -destination 'platform=macOS' -derivedDataPath build/Tests \
   CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual test
 ```
 
-The optional browser suite checks the renderer, malicious HTML, network isolation, heading collisions, malformed diagrams, concurrent reloads, and HTML export. Node is only used for these development checks:
+For a distributable app with settings shared across the sandbox boundary, sign both targets with the same Developer ID team and app group. See [SIGNING.md](docs/SIGNING.md). Ad-hoc builds are useful for development and renderer tests; they do not establish distribution signing or app-group access.
+
+After changing target membership, regenerate the project with `xcodegen generate`.
 
 ```sh
 npm ci
@@ -99,21 +67,20 @@ npm test
 python3 scripts/verify-vendor.py
 ```
 
-The app icon is generated from native drawing code in `scripts/make-icon.swift`. Renderer screenshots are captured by the browser test; they show the reading surface, not the native window chrome.
+Tests cover native document limits and path containment, persisted settings, both UI languages and layouts, real WebKit rendering, malicious HTML, offline operation, on-demand loading, and render races. The browser suite also captures preview screenshots. Native UI screenshots come from the XCTest attachment export.
 
-An optional [GitHub Actions configuration](docs/github-actions.yml) builds both targets and runs the native and browser suites. Copy it to `.github/workflows/checks.yml` to enable CI. It is provided as a template because the publishing token does not have GitHub’s `workflow` scope.
+An optional [GitHub Actions template](docs/github-actions.yml) can be copied to `.github/workflows/checks.yml`. The current publishing token does not have the `workflow` scope.
 
-## Architecture
+## Package
 
-| Location | Responsibility |
-| --- | --- |
-| `ClearMark/App` | SwiftUI interface, file access, reload, search, export |
-| `ClearMark/Shared` | Bounded file reads, local resource handling, WebKit bridge |
-| `ClearMark/Resources` | Shared offline renderer, styles, sample, vendored libraries |
-| `QuickLook` | Finder preview extension |
-| `Tests/Swift` | Native file/security and WebKit integration tests |
-| `scripts/browser-smoke.cjs` | Browser regression checks and screenshots |
+```sh
+python3 scripts/package-release.py \
+  --app build/Distribution/Build/Products/Release/ClearMark.app \
+  --output build/releases/beta
+```
+
+This creates a beta PKG and checksum without install scripts, launch agents, or background services. The same script supports installer signing, Apple notarization, and stapling when the required identities and keychain profile are supplied.
 
 ## License
 
-ClearMark is [MIT licensed](LICENSE). The bundled libraries retain their own licenses in [Vendor/Licenses](ClearMark/Resources/Vendor/Licenses). See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for versions and attribution.
+[MIT](LICENSE). Bundled library versions and licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); their asset hashes are recorded in `ClearMark/Resources/Vendor/manifest.json`.

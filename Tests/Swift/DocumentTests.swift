@@ -1,5 +1,4 @@
 import XCTest
-@testable import ClearMark
 
 final class DocumentTests: XCTestCase {
     private var directory: URL!

@@ -7,6 +7,44 @@
   let renderQueue = Promise.resolve();
   const media = matchMedia('(prefers-color-scheme: dark)');
   let currentMarkdown = '', currentOptions = {};
+  const translations = {
+    en: { copy: 'Copy', copied: 'Copied', copyCode: 'Copy code', outline: 'On this page', local: 'LOCAL PREVIEW', preview: 'Markdown preview', footer: 'Made readable with ClearMark.', remoteImage: 'Remote or unsupported image', unavailableImage: 'Image unavailable', diagram: 'Mermaid diagram', diagramError: 'This diagram couldn’t be rendered. Its source is shown above.', note: 'Note', tip: 'Tip', important: 'Important', warning: 'Warning', caution: 'Caution' },
+    zh: { copy: '复制', copied: '已复制', copyCode: '复制代码', outline: '文档目录', local: '本地预览', preview: 'Markdown 预览', footer: '由 ClearMark 清晰呈现。', remoteImage: '远程图片或不支持的格式', unavailableImage: '无法加载图片', diagram: 'Mermaid 图表', diagramError: '无法渲染此图表，已保留上方源码。', note: '备注', tip: '提示', important: '重要', warning: '警告', caution: '注意' },
+  };
+  const t = (key) => translations[(currentOptions.language || navigator.language).startsWith('zh') ? 'zh' : 'en'][key];
+  const assets = new Map();
+  function loadAsset(path, stylesheet = false) {
+    if (assets.has(path)) return assets.get(path);
+    const pending = new Promise((resolve, reject) => {
+      const element = document.createElement(stylesheet ? 'link' : 'script');
+      const timeout = setTimeout(() => { element.remove(); assets.delete(path); reject(new Error('Asset load timed out')); }, 8000);
+      element.onload = () => { clearTimeout(timeout); resolve(); };
+      element.onerror = () => { clearTimeout(timeout); element.remove(); assets.delete(path); reject(new Error('Asset unavailable')); };
+      if (stylesheet) { element.rel = 'stylesheet'; element.href = path; }
+      else element.src = path;
+      document.head.append(element);
+    });
+    assets.set(path, pending);
+    return pending;
+  }
+
+  function updateOutline(headings, enabled) {
+    const outline = document.getElementById('outline');
+    outline.replaceChildren();
+    outline.hidden = !enabled || headings.length < 2;
+    outline.setAttribute('aria-label', t('outline'));
+    if (outline.hidden) return;
+    const details = document.createElement('details');
+    const summary = document.createElement('summary'); summary.textContent = t('outline');
+    const list = document.createElement('ul');
+    for (const heading of headings.slice(0, 200)) {
+      const item = document.createElement('li'), link = document.createElement('a');
+      link.href = '#' + encodeURIComponent(heading.id); link.textContent = heading.title;
+      item.style.marginLeft = `${Math.max(0, heading.level - 2) * 12}px`;
+      item.append(link); list.append(item);
+    }
+    details.append(summary, list); outline.append(details);
+  }
 
   function safeURL(value, image = false) {
     try {
@@ -53,11 +91,11 @@
     root.querySelectorAll('img').forEach((image) => {
       const src = image.getAttribute('src') || '';
       const safe = safeURL(src, true);
-      if (!safe || !src) { placeholder(image, 'Remote or unsupported image'); return; }
+      if (!safe || !src) { placeholder(image, t('remoteImage')); return; }
       image.src = safe;
       image.loading = 'lazy';
       image.decoding = 'async';
-      image.addEventListener('error', () => placeholder(image, 'Image unavailable'), { once: true });
+      image.addEventListener('error', () => placeholder(image, t('unavailableImage')), { once: true });
     });
     root.querySelectorAll('input').forEach((input) => {
       if (input.type === 'checkbox') input.disabled = true;
@@ -78,23 +116,23 @@
         const node = walker.currentNode, take = Math.min(remaining, node.textContent.length);
         node.textContent = node.textContent.slice(take); remaining -= take;
       }
-      const label = document.createElement('span'); label.className = 'callout-label'; label.textContent = match[1].toLowerCase();
+      const label = document.createElement('span'); label.className = 'callout-label'; label.textContent = t(match[1].toLowerCase());
       quote.prepend(label); quote.classList.add('callout-' + match[1].toLowerCase());
     });
     root.querySelectorAll('pre > code').forEach((code) => {
       const language = [...code.classList].find((c) => c.startsWith('language-'))?.slice(9) || 'text';
-      if (language === 'mermaid') return;
-      if (code.textContent.length <= 100_000 && window.hljs && hljs.getLanguage(language)) {
+      if (language === 'mermaid' && currentOptions.renderDiagrams !== false) return;
+      if (currentOptions.highlightCode !== false && code.textContent.length <= 100_000 && window.hljs && hljs.getLanguage(language)) {
         code.innerHTML = hljs.highlight(code.textContent, { language, ignoreIllegals: true }).value;
       }
       const header = document.createElement('div'); header.className = 'code-header';
       const label = document.createElement('span'); label.textContent = language;
       const button = document.createElement('button'); button.className = 'copy-code'; button.type = 'button';
-      button.textContent = 'Copy'; button.setAttribute('aria-label', 'Copy code');
+      button.textContent = t('copy'); button.setAttribute('aria-label', t('copyCode'));
       button.addEventListener('click', () => {
         send({ action: 'copy', text: code.textContent });
         if (!window.webkit) navigator.clipboard?.writeText(code.textContent).catch(() => {});
-        button.textContent = 'Copied'; setTimeout(() => { button.textContent = 'Copy'; }, 1400);
+        button.textContent = t('copied'); setTimeout(() => { button.textContent = t('copy'); }, 1400);
       });
       header.append(label, button); code.parentElement.prepend(header);
     });
@@ -104,6 +142,10 @@
   async function render(markdown, options = {}, ticket) {
     if (ticket !== generation) return;
     currentMarkdown = String(markdown); currentOptions = options;
+    document.documentElement.lang = (options.language || navigator.language).startsWith('zh') ? 'zh-Hans' : 'en';
+    document.getElementById('local-caption').textContent = t('local');
+    document.getElementById('footer-caption').textContent = t('footer');
+    article.setAttribute('aria-label', t('preview'));
     const dark = options.theme === 'dark' || ((!options.theme || options.theme === 'system') && media.matches);
     document.documentElement.dataset.theme = options.theme || 'system';
     document.documentElement.style.setProperty('--font-size', `${Math.min(24, Math.max(13, Number(options.fontSize) || 17))}px`);
@@ -120,17 +162,28 @@
       FORBID_ATTR: ['style', 'srcset', 'id', 'name', 'ping', 'form', 'autofocus', 'contenteditable'],
       ALLOW_DATA_ATTR: false,
     });
+    const needsCode = options.highlightCode !== false && !!fragment.querySelector('pre > code:not(.language-mermaid)');
+    const needsDiagrams = options.renderDiagrams !== false && !!fragment.querySelector('pre > code.language-mermaid');
+    const mathProbe = fragment.cloneNode(true);
+    mathProbe.querySelectorAll('pre,code').forEach((node) => node.remove());
+    const needsMath = options.renderMath !== false && /(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\])/.test(mathProbe.textContent);
+    await Promise.all([
+      needsCode ? loadAsset('Vendor/highlight.min.js') : null,
+      needsDiagrams ? loadAsset('Vendor/mermaid.min.js') : null,
+      needsMath ? Promise.all([loadAsset('Vendor/katex.min.css', true), loadAsset('Vendor/katex.min.js')]).then(() => loadAsset('Vendor/auto-render.min.js')) : null,
+    ]);
+    if (ticket !== generation) return;
     const headings = decorate(fragment);
     article.replaceChildren(fragment);
-    send({ action: 'outline', items: headings });
-    if (window.renderMathInElement) {
+    updateOutline(headings, options.showOutline !== false);
+    if (needsMath && window.renderMathInElement) {
       renderMathInElement(article, {
         delimiters: [{ left: '$$', right: '$$', display: true }, { left: '\\[', right: '\\]', display: true }, { left: '\\(', right: '\\)', display: false }, { left: '$', right: '$', display: false }],
         throwOnError: false, strict: 'ignore', trust: false, maxExpand: 500, maxSize: 20,
         ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
       });
     }
-    if (window.mermaid) {
+    if (needsDiagrams && window.mermaid) {
       mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: dark ? 'dark' : 'base', suppressErrorRendering: true, maxTextSize: 12000, maxEdges: 300,
         flowchart: { htmlLabels: false, useMaxWidth: true },
         themeVariables: dark ? {} : { primaryColor: '#edf5ef', primaryTextColor: '#305541', primaryBorderColor: '#9ab7a4', lineColor: '#87a694', secondaryColor: '#f8f5ed', tertiaryColor: '#f4f7f3', fontFamily: '-apple-system, sans-serif', fontSize: '14px' },
@@ -144,19 +197,19 @@
           const { svg } = await mermaid.render(`diagram-${ticket}-${index++}`, code.textContent);
           if (ticket !== generation) return;
           const figure = document.createElement('figure'); figure.className = 'mermaid-diagram';
-          figure.setAttribute('aria-label', 'Mermaid diagram');
+          figure.setAttribute('aria-label', t('diagram'));
           figure.innerHTML = DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true }, ADD_TAGS: ['style'], FORBID_TAGS: ['foreignObject', 'a'], FORBID_ATTR: ['href', 'xlink:href'] });
           pre.replaceWith(figure);
         } catch (_) {
           const note = document.createElement('span'); note.className = 'render-note';
-          note.textContent = 'This diagram couldn’t be rendered. Its source is shown above.'; pre.append(note);
+          note.textContent = t('diagramError'); pre.append(note);
         }
       }
     }
     window.scrollTo(0, scrollY);
   }
 
-  article.addEventListener('click', (event) => {
+  document.getElementById('reader').addEventListener('click', (event) => {
     const link = event.target.closest('a');
     if (!link) return;
     event.preventDefault();
@@ -167,38 +220,12 @@
     } else send({ action: 'link', href });
   });
 
-  async function exportHTML() {
-    await renderQueue;
-    const clone = document.getElementById('reader').cloneNode(true);
-    clone.querySelectorAll('.copy-code').forEach((node) => node.remove());
-    for (const image of clone.querySelectorAll('img')) {
-      const original = [...article.querySelectorAll('img')].find((item) => item.src === image.src);
-      try {
-        if (!original?.complete || !original.naturalWidth) throw new Error('unavailable');
-        const scale = Math.min(1, 2400 / Math.max(original.naturalWidth, original.naturalHeight));
-        const canvas = document.createElement('canvas'); canvas.width = Math.round(original.naturalWidth * scale); canvas.height = Math.round(original.naturalHeight * scale);
-        canvas.getContext('2d').drawImage(original, 0, 0, canvas.width, canvas.height);
-        image.src = canvas.toDataURL('image/png'); image.removeAttribute('loading');
-      } catch (_) { placeholder(image, 'Image not included in export'); }
-    }
-    clone.querySelectorAll('a[href^="clearmark:"]').forEach((link) => link.removeAttribute('href'));
-    // A script-free, portable document. MathML stays selectable and accessible without local fonts.
-    clone.querySelectorAll('.katex').forEach((math) => {
-      const mathml = math.querySelector('math');
-      if (mathml) math.replaceWith(mathml.cloneNode(true));
-    });
-    const css = [...document.styleSheets].filter((sheet) => sheet.href?.endsWith('preview.css')).map((sheet) => [...sheet.cssRules].map((rule) => rule.cssText).join('\n')).join('\n');
-    const title = document.createElement('span'); title.textContent = document.title;
-    return '<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data:; style-src \'unsafe-inline\'; base-uri \'none\'; form-action \'none\'"><title>' + title.innerHTML + '</title><style>' + css + '</style></head><body>' + clone.outerHTML + '</body></html>';
-  }
-
   window.ClearMark = {
     render(markdown, options = {}) {
       const ticket = ++generation;
       renderQueue = renderQueue.catch(() => {}).then(() => render(markdown, options, ticket));
       return renderQueue;
     },
-    exportHTML,
   };
   media.addEventListener('change', () => { if (!currentOptions.theme || currentOptions.theme === 'system') window.ClearMark.render(currentMarkdown, currentOptions); });
 })();

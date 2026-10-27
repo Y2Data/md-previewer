@@ -34,7 +34,7 @@ final class PreviewViewController: NSViewController, QLPreviewingController {
         do {
             let document = try DocumentContent.read(url)
             completion = handler
-            preview.display(document)
+            preview.display(document, settings: SettingsStore().load())
         } catch { handler(error) }
     }
 
