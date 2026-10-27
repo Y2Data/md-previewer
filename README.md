@@ -93,13 +93,15 @@ xcodebuild -project ClearMark.xcodeproj -scheme ClearMark \
 The optional browser suite checks the renderer, malicious HTML, network isolation, heading collisions, malformed diagrams, concurrent reloads, and HTML export. Node is only used for these development checks:
 
 ```sh
-npm install
+npm ci
 npx playwright install chromium
 npm test
 python3 scripts/verify-vendor.py
 ```
 
 The app icon is generated from native drawing code in `scripts/make-icon.swift`. Renderer screenshots are captured by the browser test; they show the reading surface, not the native window chrome.
+
+An optional [GitHub Actions configuration](docs/github-actions.yml) builds both targets and runs the native and browser suites. Copy it to `.github/workflows/checks.yml` to enable CI. It is provided as a template because the publishing token does not have GitHub’s `workflow` scope.
 
 ## Architecture
 

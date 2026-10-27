@@ -1,0 +1,28 @@
+name: Checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify bundled assets
+        run: python3 scripts/verify-vendor.py
+      - name: Build and test app and Quick Look extension
+        run: >-
+          xcodebuild -quiet -project ClearMark.xcodeproj -scheme ClearMark
+          -destination 'platform=macOS' -derivedDataPath build
+          CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual test
+  renderer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
