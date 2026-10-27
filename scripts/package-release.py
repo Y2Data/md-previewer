@@ -37,8 +37,12 @@ def main():
     version = info["CFBundleShortVersionString"]
     if info["CFBundleIdentifier"] != "dev.y2data.clearmark":
         parser.error("The input is not a ClearMark app bundle.")
-    run("lipo", "-verify_arch", "arm64", "x86_64", app / "Contents/MacOS" / info["CFBundleExecutable"])
-    run("lipo", "-verify_arch", "arm64", "x86_64", app / "Contents/PlugIns/ClearMarkQuickLook.appex/Contents/MacOS/ClearMarkQuickLook")
+    binaries = [app / "Contents/MacOS" / info["CFBundleExecutable"],
+                app / "Contents/PlugIns/ClearMarkQuickLook.appex/Contents/MacOS/ClearMarkQuickLook"]
+    for binary in binaries:
+        architectures = subprocess.check_output(["lipo", "-archs", str(binary)], text=True).split()
+        if not {"arm64", "x86_64"}.issubset(architectures):
+            parser.error(f"Both Apple silicon and Intel architectures are required: {binary}")
     if not args.stage_only:
         run("codesign", "--verify", "--deep", "--strict", app)
     output.mkdir(parents=True, exist_ok=True)
