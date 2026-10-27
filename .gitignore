@@ -1,0 +1,11 @@
+.DS_Store
+._*
+build/
+.build/
+node_modules/
+*.xcuserstate
+xcuserdata/
+*.xcresult
+.env
+.env.*
+!.env.example

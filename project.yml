@@ -1,0 +1,107 @@
+name: ClearMark
+options:
+  bundleIdPrefix: dev.y2data.clearmark
+  deploymentTarget:
+    macOS: '14.0'
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    MARKETING_VERSION: '0.1.0'
+    CURRENT_PROJECT_VERSION: '1'
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_HARDENED_RUNTIME: YES
+    GENERATE_INFOPLIST_FILE: NO
+targets:
+  ClearMark:
+    type: application
+    platform: macOS
+    sources:
+      - ClearMark/App
+      - ClearMark/Shared
+      - path: ClearMark/Resources
+        type: folder
+        buildPhase: resources
+      - path: ClearMark/Assets.xcassets
+    info:
+      path: ClearMark/Info.plist
+      properties:
+        CFBundleDisplayName: ClearMark
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.productivity
+        NSHumanReadableCopyright: Copyright © 2026 ClearMark contributors. MIT licensed.
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Markdown document
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes: [net.daringfireball.markdown, public.plain-text]
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: net.daringfireball.markdown
+            UTTypeDescription: Markdown document
+            UTTypeConformsTo: [public.plain-text]
+            UTTypeTagSpecification:
+              public.filename-extension: [md, markdown, mdown, mkd, mkdn, mdx]
+              public.mime-type: text/markdown
+    entitlements:
+      path: ClearMark/ClearMark.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        # Required for WebKit's helper processes to launch, including local content.
+        com.apple.security.network.client: true
+        com.apple.security.files.user-selected.read-write: true
+        com.apple.security.print: true
+    dependencies:
+      - target: ClearMarkQuickLook
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.y2data.clearmark
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  ClearMarkQuickLook:
+    type: app-extension
+    platform: macOS
+    sources:
+      - QuickLook
+      - ClearMark/Shared
+      - path: ClearMark/Resources
+        type: folder
+        buildPhase: resources
+    info:
+      path: QuickLook/Info.plist
+      properties:
+        CFBundleDisplayName: ClearMark Preview
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.quicklook.preview
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).PreviewViewController
+          NSExtensionAttributes:
+            QLSupportedContentTypes: [net.daringfireball.markdown, public.markdown]
+            QLSupportsSearchableItems: false
+    entitlements:
+      path: QuickLook/QuickLook.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.network.client: true
+        com.apple.security.files.user-selected.read-only: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.y2data.clearmark.quicklook
+        SKIP_INSTALL: YES
+  ClearMarkTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources: [Tests/Swift]
+    dependencies:
+      - target: ClearMark
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  ClearMark:
+    build:
+      targets:
+        ClearMark: all
+    test:
+      targets: [ClearMarkTests]
