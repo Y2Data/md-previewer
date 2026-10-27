@@ -14,7 +14,7 @@ Requires **macOS 14+**, on Apple silicon or Intel.
 3. If macOS requires it, open ClearMark → **Quick Look Setup**, then enable **ClearMark Preview** under Extensions → Quick Look. On recent macOS versions, this is in General → Login Items & Extensions.
 4. Select a `.md` file in Finder and press **Space**. ClearMark does not need to remain open.
 
-**The first PKG is an unsigned, unnotarized beta installer.** The release notes describe the included app’s signature separately. macOS may require explicit approval before installing a downloaded beta. The [formal signing and notarization procedure](docs/SIGNING.md) is prepared for a future release.
+**Beta 2 includes a Developer ID Installer-signed PKG with a trusted timestamp.** The app and Quick Look extension are Developer ID Application-signed. **Apple notarization is still pending**, so macOS may block installation or require explicit approval. See the [signing and notarization procedure](docs/SIGNING.md).
 
 If another Markdown Quick Look extension is installed, macOS may choose it until you disable it. Finder registration and extension approval are managed by macOS.
 

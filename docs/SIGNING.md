@@ -1,6 +1,6 @@
 # Signing and notarization
 
-The beta installer is deliberately marked **unsigned and not notarized**. The included app can be signed with the existing Developer ID Application certificate. An app signature and an installer signature are different; an app signature alone does not make a downloaded PKG pass Gatekeeper.
+**Version 0.2.0 beta 2 has a Developer ID Installer-signed PKG with a trusted timestamp.** The included app and Quick Look extension are Developer ID Application-signed. **Apple notarization remains pending.** Beta 1's installer was unsigned; its app payload is unchanged in beta 2. Signing and notarization are separate steps, and a signed installer alone does not establish Gatekeeper acceptance.
 
 Before a general release, the maintainer needs:
 
@@ -37,4 +37,4 @@ For build environments that need each packaging command executed separately, `--
 
 Before publishing a stable release, verify on a clean Mac that the downloaded installer passes Gatekeeper, installs the app and extension, and that Finder previews Markdown with ClearMark closed. Enable the extension once in System Settings if macOS requires it. Test both English and Chinese settings and confirm they affect the next Finder preview. A successful app build does not establish that Finder registration or Gatekeeper validation succeeded.
 
-For an explicitly labeled beta, omit `--installer-identity` and `--notary-profile`; the output name includes `-beta`. Upload the PKG and its `.sha256` file to a GitHub prerelease. Do not describe that installer as signed or notarized.
+For a signed beta without notarization, supply `--installer-identity` and omit `--notary-profile`. Omitting both creates an unsigned beta. The output name includes `-beta` whenever notarization is omitted. Verify the installer with `pkgutil --check-signature`, then upload the PKG and its `.sha256` file to a GitHub prerelease with its exact signing and notarization status.
